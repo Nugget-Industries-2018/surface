@@ -3,7 +3,7 @@
  * 2017
  */
 
-// dependancies
+// dependencies
 const http = require('http');
 const yargs = require('yargs');
 const express = require('express');
