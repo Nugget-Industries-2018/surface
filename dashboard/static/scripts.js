@@ -34,3 +34,9 @@ socket.on('motorData', data => {
     console.log(data);
     data.map((value, index) => motors[index].val((value - 1550) / 400))
 });
+socket.on('PIDTuneData', data => {
+    console.log(data);
+    $('#zKp-ROV').val(data.zKp);
+    $('#zKi-ROV').val(data.zKi);
+    $('#zKd-ROV').val(data.zKd);
+});

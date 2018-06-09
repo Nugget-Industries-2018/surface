@@ -117,9 +117,9 @@ async function main() {
             })
         });
 
-        socket.on('PIDTune', data => {
+        socket.on('PIDTune', async data => {
             logger.d('PID tuning', 'SEND IT button pressed');
-            botSocket.tunePIDLoop(data.zKp, data.zKi, data.zKd)
+            socket.emit('PIDTuneData', (await botSocket.tunePIDLoop(data.zKp, data.zKi, data.zKd)).body)
         });
         socket.on('disconnectFromBot', () => botSocket.disconnect());
 
