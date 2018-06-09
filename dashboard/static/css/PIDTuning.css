@@ -1,0 +1,4 @@
+#PIDContainer {
+  display: grid;
+  grid-template: repeat(4, auto) / repeat(2, auto);
+}

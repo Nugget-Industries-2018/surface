@@ -17,6 +17,11 @@ $(document).ready(() => {
     // do some button listeners
     $('#connect').click(() => socket.emit('connectToBot'));
     $('#disconnect').click(() => socket.emit('disconnectFromBot'));
+    $('#PIDTuneSend').click(() => socket.emit('PIDTune', {
+        zKp: $('#zKp').val(),
+        zKi: $('#zKi').val(),
+        zKd: $('#zKd').val()
+    }))
 });
 // ye olde socket listeners
 socket.on('magData', data => {

@@ -76,7 +76,6 @@ let toggleDepthLock = false;
 
 // express/webserver stuff
 app.use('/static', express.static(__dirname + '/dashboard/static'));
-app.locals.pretty = true;
 
 // GET renderer
 app.get('/', (request, response) => response.sendFile(__dirname + '/dashboard/index.html'));
@@ -112,15 +111,17 @@ async function main() {
             mapper.on('data', async data => {
                 _dashSocket.emit('motorData', (await botSocket.sendControllerData(data)).body);
             });
-            mapper.on('setDepthLock', async value => {
+            mapper.on('setDepthLock', value => {
                 toggleDepthLock = value;
                 botSocket.setDepthLock(toggleDepthLock);
             })
         });
 
-        socket.on('disconnectFromBot', async () => {
-            await botSocket.disconnect();
+        socket.on('PIDTune', data => {
+            logger.d('PID tuning', 'SEND IT button pressed');
+            botSocket.tunePIDLoop(data.zKp, data.zKi, data.zKd)
         });
+        socket.on('disconnectFromBot', () => botSocket.disconnect());
 
         // actual socket.io disconnect event from dashboard
         socket.on('disconnect', () => {
