@@ -27,6 +27,9 @@ if (win) {
     throttleAxis = 5;
     setDepthButton = 9;
     unsetDepthButton = 8;
+    controller2RightTrigger = 5;
+    controller2LeftTrigger = 4;
+    rightThumbUD = 3;
 }
 else {
     FBAxis = 1;
