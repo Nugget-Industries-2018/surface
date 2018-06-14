@@ -21,7 +21,11 @@ $(document).ready(() => {
         zKp: $('#zKp').val(),
         zKi: $('#zKi').val(),
         zKd: $('#zKd').val()
-    }))
+    }));
+    $('#specialDeliveryButton').click(() => socket.emit('specialDelivery', {
+        type: $('#specialDeliveryType').val(),
+        payload: $('#specialDeliveryPayload').val()
+    }));
 });
 // ye olde socket listeners
 socket.on('magData', data => {
@@ -40,3 +44,4 @@ socket.on('PIDTuneData', data => {
     $('#zKi-ROV').val(data.zKi);
     $('#zKd-ROV').val(data.zKd);
 });
+socket.on('specialDeliveryResponse', data => $('#specialDeliveryResponse').val(data));

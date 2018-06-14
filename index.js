@@ -100,12 +100,16 @@ async function main() {
     botSocket.on('piTempData', data => {
         _dashSocket.emit('piTempData', data);
     });
+    botSocket.on('motorData', data => {
+        _dashSocket.emit('motorData', data);
+    });
 
     // set us up some dashboard listeners
     dashboard.on('connection', socket => {
+        _dashSocket = socket;
 
         logger.i('dashboard', 'the dashboard awakens');
-        socket.on('connectToBot', async () => {
+        _dashSocket.on('connectToBot', async () => {
             await botSocket.connect(options);
             await botSocket.startPiTempStream(1000);
             mapper.on('data', async data => {
@@ -117,18 +121,18 @@ async function main() {
             })
         });
 
-        socket.on('PIDTune', async data => {
+        _dashSocket.on('PIDTune', async data => {
             logger.d('PID tuning', 'SEND IT button pressed');
-            socket.emit('PIDTuneData', (await botSocket.tunePIDLoop(data.zKp, data.zKi, data.zKd)).body)
+            socket.emit('PIDTuneData', (await botSocket.tunePIDLoop(data.zKp, data.zKi, data.zKd)).body);
         });
-        socket.on('disconnectFromBot', () => botSocket.disconnect());
+        _dashSocket.on('specialDelivery', async data => _dashSocket.emit('specialDeliveryResponse', (await botSocket.specialDelivery(data.type, data.payload)).body));
+        _dashSocket.on('disconnectFromBot', () => botSocket.disconnect());
 
         // actual socket.io disconnect event from dashboard
-        socket.on('disconnect', () => {
+        _dashSocket.on('disconnect', () => {
             logger.i('dashboard', 'dashboard connection closed');
             _dashSocket = dummySocket.reset()
         });
-        _dashSocket = socket;
     });
 
 }
