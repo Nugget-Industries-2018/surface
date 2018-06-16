@@ -10,10 +10,10 @@ let dickspinAxis;
 let smolLeftRightAxis;
 let smolUpDownAxis;
 let throttleAxis;
-let setDepthButton;
-let unsetDepthButton;
-let controller2RightTrigger;
-let controller2LeftTrigger;
+let rightBumper;
+let leftBumper;
+let rightTrigger;
+let leftTrigger;
 let rightThumbUD;
 let upOnDPad;
 let downOnDPad;
@@ -29,10 +29,10 @@ if (win) {
     smolLeftRightAxis = 2;
     smolUpDownAxis = 3;
     throttleAxis = 5;
-    setDepthButton = 9;
-    unsetDepthButton = 8;
-    controller2RightTrigger = 5;
-    controller2LeftTrigger = 4;
+    rightBumper = 9;
+    leftBumper = 8;
+    rightTrigger = 5;
+    leftTrigger = 4;
     rightThumbUD = 3;
     upOnDPad = 0;
     downOnDPad = 1;
@@ -48,10 +48,10 @@ else {
     smolLeftRightAxis = 4;
     smolUpDownAxis = 5;
     throttleAxis = 3;
-    setDepthButton = 5;
-    unsetDepthButton = 4;
-    controller2RightTrigger = 5;
-    controller2LeftTrigger = 2;
+    rightBumper = 5;
+    leftBumper = 4;
+    rightTrigger = 5;
+    leftTrigger = 2;
     rightThumbUD = 4;
 }
 
@@ -69,8 +69,8 @@ module.exports = class extends EventEmitter {
             [0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0]
         ];
-        this.axes[1][controller2RightTrigger] = -1;
-        this.axes[1][controller2LeftTrigger] = -1;
+        this.axes[1][rightTrigger] = -1;
+        this.axes[1][leftTrigger] = -1;
         this.buttons = [
             [false, false, false, false, false, false, false, false, false, false, false, false, false, false],
             [false, false, false, false, false, false, false, false, false, false, false, false, false, false]
@@ -87,10 +87,20 @@ module.exports = class extends EventEmitter {
     buttonDown(id, num) {
         this.buttons[id][num] = true;
         this.emit('rawData', this.buttons);
-        if (id === 1 && num === setDepthButton)
+        if (id === 1 && num === rightBumper)
             this.emit('setDepthLock', true);
-        if (id === 1 && num === unsetDepthButton)
+        if (id === 1 && num === leftBumper)
             this.emit('setDepthLock', false);
+        if (id === 1 && num === Y)
+            this.emit('specialDelivery', {
+                type: 'electromag',
+                body: true
+            });
+        if (id === 1 && num === X)
+            this.emit('specialDelivery', {
+                type: 'electromag',
+                body: false
+            });
     }
 
     buttonUp(id, num) {
@@ -114,10 +124,11 @@ module.exports = class extends EventEmitter {
             turn: !this.buttons[0][6] &&  this.axes[0][dickspinAxis],
             strafe: !this.buttons[0][6] &&  this.axes[0][LRAxis],
             pitch: !this.buttons[0][6] &&  this.axes[1][rightThumbUD],
-            depth: !this.buttons[0][6] && (this.axes[1][controller2LeftTrigger] - this.axes[1][controller2RightTrigger]) / 2,
+            depth: !this.buttons[0][6] && (this.axes[1][leftTrigger] - this.axes[1][rightTrigger]) / 2,
             manip: !this.buttons[0][6] && this.axes[0][smolUpDownAxis],
             leveler: !this.buttons[0][6] && this.buttons[1][A] * 1 + this.buttons[1][B] * -1,
-            picamControl: this.buttons[1][upOnDPad] * 1 + this.buttons[1][downOnDPad] * -1
+            picamControl: this.buttons[1][upOnDPad] * 1 + this.buttons[1][downOnDPad] * -1,
+            electromagControl: this.buttons[1][Y] * 1
 
         };
         Object.keys(newVals).map(key => {
