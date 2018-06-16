@@ -1,6 +1,6 @@
 const socket = io.connect('http://localhost');
 const imgDirectory = '/static/lib/indicators/img/';
-let attitude, heading, motors;
+let attitude, heading, vectorMotors, depthMotors;
 // set up all the indicators
 $(document).ready(() => {
     attitude = $.flightIndicator('#attitude', 'attitude', {
@@ -13,7 +13,9 @@ $(document).ready(() => {
         showBox: true,
         img_directory: imgDirectory
     });
-    motors = [ $('#LF'), $('#RF'), $('#LB'), $('#RB'), $('#F'), $('#B'), $('#MAN') ];
+    vectorMotors = [ $('#LF'), $('#RF'), $('#LB'), $('#RB') ];
+    depthMotors = [ $('#F'), $('#B') ];
+
     // do some button listeners
     $('#connect').click(() => socket.emit('connectToBot'));
     $('#disconnect').click(() => socket.emit('disconnectFromBot'));
@@ -36,7 +38,9 @@ socket.on('magData', data => {
 socket.on('piTempData', data => $('#piTemp').val(data));
 socket.on('motorData', data => {
     console.log(data);
-    data.map((value, index) => motors[index].val((value - 1550) / 400))
+    data.vector.map((value, index) => vectorMotors[index].val((value - 1550) / 400));
+    data.depth.map((value, index) => depthMotors[index].val((value - 1550) / 400));
+    $('#MAN').val(data.manip);
 });
 socket.on('PIDTuneData', data => {
     console.log(data);

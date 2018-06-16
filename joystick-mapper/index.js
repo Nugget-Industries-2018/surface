@@ -1,8 +1,6 @@
 const EventEmitter = require('events');
 const gamepad = require('gamepad');
 
-const arrEquals = (arr1, arr2) => !arr1.filter((elem, index) => elem !== arr2[index]).length;
-
 // true if platform is windows
 const win = require('os').platform().indexOf('win32') > -1;
 
@@ -17,6 +15,12 @@ let unsetDepthButton;
 let controller2RightTrigger;
 let controller2LeftTrigger;
 let rightThumbUD;
+let upOnDPad;
+let downOnDPad;
+let A;
+let B;
+let X;
+let Y;
 
 if (win) {
     FBAxis = 0;
@@ -30,6 +34,12 @@ if (win) {
     controller2RightTrigger = 5;
     controller2LeftTrigger = 4;
     rightThumbUD = 3;
+    upOnDPad = 0;
+    downOnDPad = 1;
+    A = 10;
+    B = 11;
+    X = 12;
+    Y = 13;
 }
 else {
     FBAxis = 1;
@@ -60,19 +70,13 @@ module.exports = class extends EventEmitter {
             [0, 0, 0, 0, 0, 0]
         ];
         this.axes[1][controller2RightTrigger] = -1;
-        this.axes[1][controller2LeftTrigger] = -1
-        this.buttons = [false, false, false, false, false, false, false, false, false, false, false, false];
-
-        this.directions = [
-            0, // forward/backward
-            0, // turn (yaw)
-            0, // strafe
-            0, // pitch
-            0, // depth
-            0, // manipulator
-            0, // leveler
-            0  // picam servo
+        this.axes[1][controller2LeftTrigger] = -1;
+        this.buttons = [
+            [false, false, false, false, false, false, false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false, false, false, false, false, false, false]
         ];
+
+        this.directions = {};
 
         gamepad.on('down', (id, num) => this.buttonDown(id, num));
         gamepad.on('up', (id, num) => this.buttonUp(id, num));
@@ -81,7 +85,7 @@ module.exports = class extends EventEmitter {
     }
 
     buttonDown(id, num) {
-        this.buttons[num] = true;
+        this.buttons[id][num] = true;
         this.emit('rawData', this.buttons);
         if (id === 1 && num === setDepthButton)
             this.emit('setDepthLock', true);
@@ -90,7 +94,7 @@ module.exports = class extends EventEmitter {
     }
 
     buttonUp(id, num) {
-        this.buttons[num] = false;
+        this.buttons[id][num] = false;
         this.emit('rawData', this.buttons);
     }
 
@@ -105,21 +109,25 @@ module.exports = class extends EventEmitter {
     }
 
     checkValues() {
-        const newVals = [
-            !this.buttons[6] && !this.buttons[0] * -this.axes[0][FBAxis], // FB
-            !this.buttons[6] &&  this.axes[0][dickspinAxis], // turn
-            !this.buttons[6] &&  this.axes[0][LRAxis], // strafe
-            !this.buttons[6] &&  this.axes[1][rightThumbUD], // pitch
-            !this.buttons[6] && (this.axes[1][controller2LeftTrigger] - this.axes[1][controller2RightTrigger]) / 2, // depth
-            !this.buttons[6] && (this.buttons[1] * -this.axes[0][throttleAxis] * !this.buttons[3]), // manipulator
-            !this.buttons[6] &&  this.buttons[10] * 1, // leveler
-             this.buttons[2] ?  -this.axes[0][throttleAxis] : this.directions[7] // picam
-        ];
-        if (arrEquals(newVals, this.directions))
-            return;
+        let newVals = {
+            FB: !this.buttons[0][6] && -this.axes[0][FBAxis],
+            turn: !this.buttons[0][6] &&  this.axes[0][dickspinAxis],
+            strafe: !this.buttons[0][6] &&  this.axes[0][LRAxis],
+            pitch: !this.buttons[0][6] &&  this.axes[1][rightThumbUD],
+            depth: !this.buttons[0][6] && (this.axes[1][controller2LeftTrigger] - this.axes[1][controller2RightTrigger]) / 2,
+            manip: !this.buttons[0][6] && this.axes[0][smolUpDownAxis],
+            leveler: !this.buttons[0][6] && this.buttons[1][A] * 1 + this.buttons[1][B] * -1,
+            picamControl: this.buttons[1][upOnDPad] * 1 + this.buttons[1][downOnDPad] * -1
+
+        };
+        Object.keys(newVals).map(key => {
+            if (newVals[key] === this.directions[key])
+                delete newVals[key];
+        });
+        if (Object.keys(newVals).length === 0) return;
 
         this.emit('data', newVals);
-        this.directions = newVals;
+        this.directions = Object.assign(this.directions, newVals);
     }
 
 };
