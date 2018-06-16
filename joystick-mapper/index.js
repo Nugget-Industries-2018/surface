@@ -53,6 +53,12 @@ else {
     rightTrigger = 5;
     leftTrigger = 2;
     rightThumbUD = 4;
+    upOnDPad = 6;
+    downOnDPad = 7;
+    A = 0;
+    B = 1;
+    X = 2;
+    Y = 3;
 }
 
 gamepad.init();
@@ -145,5 +151,5 @@ module.exports = class extends EventEmitter {
 
 if (require.main === module) {
     const mapper = new module.exports(17, 0.15);
-    mapper.on('data', console.log);
+    mapper.on('rawData', console.log);
 }
