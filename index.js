@@ -120,7 +120,7 @@ async function main() {
                 botSocket.setDepthLock(toggleDepthLock);
             });
             mapper.on('specialDelivery', data => {
-                botSocket.specialDelivery(data.type, data.payload);
+                botSocket.specialDelivery(data.type, data.body);
             })
         });
 
