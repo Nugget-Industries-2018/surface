@@ -38,9 +38,9 @@ socket.on('magData', data => {
 socket.on('piTempData', data => $('#piTemp').val(data));
 socket.on('motorData', data => {
     console.log(data);
-    data.vector.map((value, index) => vectorMotors[index].val((value - 1550) / 400));
-    data.depth.map((value, index) => depthMotors[index].val((value - 1550) / 400));
-    $('#MAN').val(data.manip);
+    if (data.hasOwnProperty('vector')) data.vector.map((value, index) => vectorMotors[index].val((value - 1550) / 400));
+    if (data.hasOwnProperty('depth')) data.depth.map((value, index) => depthMotors[index].val((value - 1550) / 400));
+    if (data.hasOwnProperty('manip')) $('#MAN').val((data.manip - 1550) / 400);
 });
 socket.on('PIDTuneData', data => {
     console.log(data);
