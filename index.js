@@ -92,6 +92,24 @@ server.listen(dashPort, () => logger.i('dashboard', `dashboard running on localh
  */
 async function main() {
 
+    mapper.on('data', async data => {
+        try {
+            _dashSocket.emit('motorData', (await botSocket.sendControllerData(data)).body);
+        }
+        catch (error) {
+            if (error instanceof TypeError)
+                return;
+            throw error;
+        }
+    });
+    mapper.on('setDepthLock', value => {
+        toggleDepthLock = value;
+        botSocket.setDepthLock(toggleDepthLock);
+    });
+    mapper.on('specialDelivery', data => {
+        botSocket.specialDelivery(data.type, data.body);
+    });
+
     // convert radians to degrees
     botSocket.on('magData', data => {
         Object.keys(data).map(k => data[k] *= 180 / Math.PI);
@@ -112,16 +130,6 @@ async function main() {
         _dashSocket.on('connectToBot', async () => {
             await botSocket.connect(options);
             await botSocket.startPiTempStream(1000);
-            mapper.on('data', async data => {
-                _dashSocket.emit('motorData', (await botSocket.sendControllerData(data)).body);
-            });
-            mapper.on('setDepthLock', value => {
-                toggleDepthLock = value;
-                botSocket.setDepthLock(toggleDepthLock);
-            });
-            mapper.on('specialDelivery', data => {
-                botSocket.specialDelivery(data.type, data.body);
-            })
         });
 
         _dashSocket.on('PIDTune', async data => {
